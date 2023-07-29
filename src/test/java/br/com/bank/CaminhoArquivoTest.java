@@ -42,10 +42,9 @@ class CaminhoArquivoTest {
 
     @Test
     public void testGetInstanceWithNullId() {
-        // Arrange
+
         Integer id = null;
 
-        // Act & Assert
         assertThrows(NullPointerException.class, () -> {
             CaminhoArquivo.getInstance(id);
         });

@@ -16,55 +16,45 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 
 import static org.junit.jupiter.api.Assertions.*;
-
-import java.nio.file.Paths;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class SistemaBancarioTest {
 
-    // @InjectMocks
-    // private SistemaBancario sistemaBancario;
-    // @Mock
-    // private Bacen bacen;
-
-    private Banco banco;
-    private Conta conta1;
-    private Conta conta2;
+    private Bacen bacenMock;
+    private SistemaBancario sistemaBancario;
 
     @BeforeEach
     public void setUp() {
-        banco = new Banco("Meu Banco");
-        conta1 = new Conta("11111111111", "João", 5000.0);
-        conta2 = new Conta("22222222222", "Maria", 12000.0);
+        bacenMock = mock(Bacen.class);
+        sistemaBancario = new SistemaBancario(bacenMock);
     }
 
     @Test
-    public void testAdicionarConta() {
-        banco.adicionarConta(conta1);
-        banco.adicionarConta(conta2);
+    public void testRegistrarBancoWithSuccess() {
+        Banco banco = new Banco("Meu Banco");
+        long registeredBancoId = 1234;
 
-        assertEquals(conta1, banco.pesquisarContaDoCliente("11111111111"));
-        assertEquals(conta2, banco.pesquisarContaDoCliente("22222222222"));
+        when(bacenMock.cadastrarBanco(banco)).thenReturn(registeredBancoId);
+
+        long result = sistemaBancario.registrarBanco(banco);
+
+        assertEquals(registeredBancoId, result);
+        verify(bacenMock, times(1)).cadastrarBanco(banco);
     }
 
     @Test
-    public void testPesquisarContaDoCliente() {
-        banco.adicionarConta(conta1);
-        banco.adicionarConta(conta2);
+    public void testRegistrarBancoWithFailure() {
+        Banco banco = new Banco("Meu Banco");
 
-        assertEquals(conta1, banco.pesquisarContaDoCliente("11111111111"));
-        assertEquals(conta2, banco.pesquisarContaDoCliente("22222222222"));
-        assertNull(banco.pesquisarContaDoCliente("33333333333")); // Non-existing CPF
+        when(bacenMock.cadastrarBanco(banco)).thenThrow(new RuntimeException("Banco not registered in Bacen"));
+
+        assertThrows(RuntimeException.class, () -> sistemaBancario.registrarBanco(banco));
+
+        verify(bacenMock, times(1)).cadastrarBanco(banco);
     }
-
-    @Test
-    public void testListarContasAltaRenda() {
-        banco.adicionarConta(conta1);
-        banco.adicionarConta(conta2);
-
-        assertEquals(1, banco.listarContasAltaRenda().size());
-        assertTrue(banco.listarContasAltaRenda().contains(conta2));
-    }
-
 }
